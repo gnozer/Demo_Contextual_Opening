@@ -3,5 +3,4 @@
 .project
 /.settings/
 /src/main/java/
-/src/main/webapp/META-INF/
-/src/main/webapp/WEB-INF/
+/bin/

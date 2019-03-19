@@ -1,1 +1,0 @@
-# Demo - Contextual Opening

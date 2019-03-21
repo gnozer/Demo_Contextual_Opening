@@ -2,7 +2,28 @@
 // These can be imported from other files
 const selectLine = { 
 		props: ['idstop'],
-		template: '<div><h1>Arrêt : {{ this.$parent.getStopById(idstop) }}</h1><ul><li v-for="line in this.$parent.lines"><router-link v-bind:to="\'/stop/\' + idstop +\'/line/\' + line.id">{{ line.name }}</router-link></li></ul></div>'
+		template: '<div><h1>Arrêt : {{ this.$parent.getStopById(idstop) }}</h1><ul><li v-for="line in this.$parent.lines"><router-link v-bind:to="\'/stop/\' + idstop +\'/line/\' + line.id">{{ line.name }}</router-link></li></ul></div>',
+		methods:{
+			getStopByStopAreaMission: function(idStopArea, idMission) {
+				  var mission;
+				  for(var i = 0; i < this.$parent.missions.length; i++) {
+					  if(this.$parent.missions[i].id === idMission){
+						  mission = this.$parent.missions[i];
+					  }
+				  }
+				  var stopsOfArea = [];
+				  for(var i = 0; i < this.$parent.stops.length; i++){
+					  if(this.$parent.stops[i].parent === idStopArea){
+						  for(var j = 0; j < Object.keys(mission.pois).length; j++) {
+							  if (this.$parent.stops[i].id === Object.keys(mission.pois)[j]){
+								  return Object.keys(mission.pois)[j];
+							  }
+						  }
+					  }
+				  }
+				  
+			  }
+		}
 }
 const selectMission = { 
 		props: ['idstop', 'idline'],
@@ -12,7 +33,7 @@ const selectMission = {
 				<h2>{{ this.$parent.getLineById(idline) }}</h2>
 				<ul>
 					<li v-for="mission in this.$parent.missions">
-						<a :href="'http://zenbus.net/tan?busStop=' +encodeURIComponent(idstop)+ '&route='+ encodeURIComponent(idline) + '&direction=' + encodeURIComponent(mission.direction)" target="_blank">{{ mission.name }}</a>
+						<a :href="'http://zenbus.net/tan?busStop=' +encodeURIComponent(this.$parent.getStopByStopAreaMission(idstop, mission.id))+ '&route='+ encodeURIComponent(idline) + '&direction=' + encodeURIComponent(mission.direction)" target="_blank">{{ mission.name }}</a>
 					</li>
 				</ul>
 			</div>
@@ -47,11 +68,14 @@ const app = new Vue({
   data: {
 	  query: '',
 	  stops: [
+		  {id:'StopArea:CSMP', name: 'Casimir Périer'},
 		  {id:'StopArea:COMM', name: 'Commerce'},
 		  {id:'StopArea:CNGO', name: 'Congo'},
 		  {id:'StopArea:CORA', name: 'Conraie'},
 		  {id:'StopArea:CSVA', name: 'Conservatoire'},
 		  {id:'StopArea:COQU', name: 'Coquelicots'},
+		  {id:'StopPoint:CSMP2', name: 'Casimir Périer', parent: 'StopArea:CSMP'},
+		  {id:'StopPoint:CSMP3', name: 'Casimir Périer', parent: 'StopArea:CSMP'},
 		  
 	  ],
 	  lines: [
@@ -62,8 +86,8 @@ const app = new Vue({
 		  {id:'85-0', name: '85 - Bois St-Lys - Haluchère - Batignolles'}
 	  ],
 	  missions: [
-		  {id:'16391435-HT19H101-00-25-BLEU', name: 'Hôtel de Région - Jonelière', direction: '0'},
-		  {id:'16391471-HT19H101-00-25-BLEU', name: 'Jonelière - Hôtel de Région', direction: '1'},
+		  {id:'16391435-HT19H101-00-25-BLEU', name: 'Hôtel de Région - Jonelière', direction: '0', pois: {'StopPoint:CSMP2': [259]}},
+		  {id:'16391471-HT19H101-00-25-BLEU', name: 'Jonelière - Hôtel de Région', direction: '1', pois: {'StopPoint:CSMP3': [193]}},
 	  ]
   },
   methods: {

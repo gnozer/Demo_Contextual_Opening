@@ -13,7 +13,7 @@
 				<input name="query" v-model="query" placeholder="Chercher un arrêt">
 			</form>
 			<ul>
-				<li v-for="stop in filteredStops"><router-link v-bind:to="'/stop/' + stop.id">{{ stop.name }}</router-link></li>
+				<li v-for="stop in filteredStops" v-if="stop.type == 1"><router-link v-bind:to="'/stop/' + stop.id">{{ stop.name }}</router-link></li>
 			</ul>
 	    	<!-- use router-link component for navigation. -->
 	    	<!-- specify the link by passing the `to` prop. -->

@@ -2,28 +2,7 @@
 // These can be imported from other files
 const selectLine = { 
 		props: ['idstop'],
-		template: '<div><h1>Arrêt : {{ this.$parent.getStopById(idstop) }}</h1><ul><li v-for="line in this.$parent.lines"><router-link v-bind:to="\'/stop/\' + idstop +\'/line/\' + line.id">{{ line.name }}</router-link></li></ul></div>',
-		methods:{
-			getStopByStopAreaMission: function(idStopArea, idMission) {
-				  var mission;
-				  for(var i = 0; i < this.$parent.missions.length; i++) {
-					  if(this.$parent.missions[i].id === idMission){
-						  mission = this.$parent.missions[i];
-					  }
-				  }
-				  var stopsOfArea = [];
-				  for(var i = 0; i < this.$parent.stops.length; i++){
-					  if(this.$parent.stops[i].parent === idStopArea){
-						  for(var j = 0; j < Object.keys(mission.pois).length; j++) {
-							  if (this.$parent.stops[i].id === Object.keys(mission.pois)[j]){
-								  return Object.keys(mission.pois)[j];
-							  }
-						  }
-					  }
-				  }
-				  
-			  }
-		}
+		template: '<div><h1>Arrêt : {{ this.$parent.getStopById(idstop) }}</h1><ul><li v-for="line in this.$parent.lines"><router-link v-bind:to="\'/stop/\' + idstop +\'/line/\' + line.id">{{ line.name }}</router-link></li></ul></div>'
 }
 const selectMission = { 
 		props: ['idstop', 'idline'],
@@ -68,14 +47,14 @@ const app = new Vue({
   data: {
 	  query: '',
 	  stops: [
-		  {id:'StopArea:CSMP', name: 'Casimir Périer'},
-		  {id:'StopArea:COMM', name: 'Commerce'},
-		  {id:'StopArea:CNGO', name: 'Congo'},
-		  {id:'StopArea:CORA', name: 'Conraie'},
-		  {id:'StopArea:CSVA', name: 'Conservatoire'},
-		  {id:'StopArea:COQU', name: 'Coquelicots'},
-		  {id:'StopPoint:CSMP2', name: 'Casimir Périer', parent: 'StopArea:CSMP'},
-		  {id:'StopPoint:CSMP3', name: 'Casimir Périer', parent: 'StopArea:CSMP'},
+		  {id:'StopArea:CSMP', name: 'Casimir Périer', type:1},
+		  {id:'StopArea:COMM', name: 'Commerce', type:1},
+		  {id:'StopArea:CNGO', name: 'Congo', type:1},
+		  {id:'StopArea:CORA', name: 'Conraie', type:1},
+		  {id:'StopArea:CSVA', name: 'Conservatoire', type:1},
+		  {id:'StopArea:COQU', name: 'Coquelicots', type:1},
+		  {id:'StopPoint:CSMP2', name: 'Casimir Périer', parent: 'StopArea:CSMP', type:0},
+		  {id:'StopPoint:CSMP3', name: 'Casimir Périer', parent: 'StopArea:CSMP', type:0},
 		  
 	  ],
 	  lines: [
@@ -104,6 +83,25 @@ const app = new Vue({
 				  return this.lines[i].name;
 			  }
 		  }
+	  },
+	  getStopByStopAreaMission: function(idStopArea, idMission) {
+		  var mission;
+		  for(var i = 0; i < this.missions.length; i++) {
+			  if(this.missions[i].id === idMission){
+				  mission = this.missions[i];
+			  }
+		  }
+		  var stopsOfArea = [];
+		  for(var i = 0; i < this.stops.length; i++){
+			  if(this.stops[i].parent === idStopArea){
+				  for(var j = 0; j < Object.keys(mission.pois).length; j++) {
+					  if (this.stops[i].id === Object.keys(mission.pois)[j]){
+						  return Object.keys(mission.pois)[j];
+					  }
+				  }
+			  }
+		  }
+		  
 	  }
   },
   computed: {

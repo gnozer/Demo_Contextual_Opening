@@ -34,18 +34,12 @@ const selectMission = {
 		},
 		template: `
 			<div>
-				
 				<h1>Arrêt : {{ this.$parent.getStopById(idstop) }}</h1>
 				<h2>{{ this.$parent.getLineById(idline) }}</h2>
-				<!--<ul class="pure-menu-list">
-					<li v-for="mission in this.$parent.currentMissions" class="pure-menu-item">
-						<a :href="'https://zenbus.net/tan?route='+ encodeURIComponent(idline) + '&busStop=' + encodeURIComponent(getStop(mission, idstop))" class="pure-menu-link">{{mission.name}}</a>
-					</li>
-				</ul>-->
 				<form class="pure-form pure-form-aligned">
 				<label :for="mission.id" class="pure-radio" v-for="mission in this.$parent.currentMissions">
-			        <input :id="mission.id" type="radio" name="optionsRadios" :value="mission.id" class="pure-radio" v-model="idMission" @click="sendPopup">
-			        {{ mission.name }}
+			        <input :id="mission.id" type="radio" name="optionsRadios" :value="mission.id" class="pure-radio" v-model="idMission" @click="onClick(idline, getStop(mission, idstop))"> 
+			    	{{ mission.name }} 
 			    </label>
 			    </form>
 			</div>
@@ -63,6 +57,17 @@ const selectMission = {
 				});
 				
 				return stopId;
+			},
+			
+			onClick: function(routeId, stopId){
+				if(Android){
+					Android.zenbusRedir("tan", routeId, stopId);
+				}
+				
+				/*
+				 * TODO an other function to load zenbus in app --> Android.zenbusLoad("tan", routeId, stopId)
+				 */
+				
 			},
 			sendPopup: function(){
 				console.log("hello");

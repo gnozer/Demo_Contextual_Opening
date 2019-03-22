@@ -30,6 +30,7 @@ const selectMission = {
 		data: function(){
 			return {
 				idMission:'0',
+				showModal:false,
 			}
 		},
 		template: `
@@ -38,10 +39,24 @@ const selectMission = {
 				<h2>{{ this.$parent.getLineById(idline) }}</h2>
 				<form class="pure-form pure-form-aligned">
 				<label :for="mission.id" class="pure-radio" v-for="mission in this.$parent.currentMissions">
-			        <input :id="mission.id" type="radio" name="optionsRadios" :value="mission.id" class="pure-radio" v-model="idMission" @click="onClick(idline, getStop(mission, idstop))"> 
-			    	{{ mission.name }} 
+			        <input :id="mission.id" type="radio" name="optionsRadios" :value="mission.id" class="pure-radio" v-model="idMission" @click="showModal = true">
+			        {{ mission.name }}
 			    </label>
 			    </form>
+			    <div id="popup1" class="overlay" v-show="showModal">
+					<div class="popup">
+						<h2>Choose destination</h2>
+						<a class="close" href="#" @click="showModal = false">&times;</a>
+						<div class="content">
+							Choose your destination between Zenbus App and Zenbus Iframe.
+						</div>
+						<div class="buttons-container">
+							<button class="button-popup">Zenbus App</button>
+							<button class="button-popup">Iframe</button>
+						</div>
+					</div>
+				</div>
+						    
 			</div>
 		`,
 		
@@ -57,17 +72,6 @@ const selectMission = {
 				});
 				
 				return stopId;
-			},
-			
-			onClick: function(routeId, stopId){
-				if(Android){
-					Android.zenbusRedir("tan", routeId, stopId);
-				}
-				
-				/*
-				 * TODO an other function to load zenbus in app --> Android.zenbusLoad("tan", routeId, stopId)
-				 */
-				
 			},
 			sendPopup: function(){
 				console.log("hello");

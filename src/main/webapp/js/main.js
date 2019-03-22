@@ -30,6 +30,7 @@ const selectMission = {
 		data: function(){
 			return {
 				idMission:'0',
+				showModal:false,
 			}
 		},
 		template: `
@@ -44,10 +45,24 @@ const selectMission = {
 				</ul>-->
 				<form class="pure-form pure-form-aligned">
 				<label :for="mission.id" class="pure-radio" v-for="mission in this.$parent.currentMissions">
-			        <input :id="mission.id" type="radio" name="optionsRadios" :value="mission.id" class="pure-radio" v-model="idMission" @click="sendPopup">
+			        <input :id="mission.id" type="radio" name="optionsRadios" :value="mission.id" class="pure-radio" v-model="idMission" @click="showModal = true">
 			        {{ mission.name }}
 			    </label>
 			    </form>
+			    <div id="popup1" class="overlay" v-show="showModal">
+					<div class="popup">
+						<h2>Choose destination</h2>
+						<a class="close" href="#" @click="showModal = false">&times;</a>
+						<div class="content">
+							Choose your destination between Zenbus App and Zenbus Iframe.
+						</div>
+						<div class="buttons-container">
+							<button class="button-popup">Zenbus App</button>
+							<button class="button-popup">Iframe</button>
+						</div>
+					</div>
+				</div>
+						    
 			</div>
 		`,
 		
@@ -63,9 +78,6 @@ const selectMission = {
 				});
 				
 				return stopId;
-			},
-			sendPopup: function(){
-				console.log("hello");
 			}
 		}
 }

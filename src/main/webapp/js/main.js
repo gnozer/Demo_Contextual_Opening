@@ -8,17 +8,33 @@ const selectMission = {
 		props: ['idstop', 'idline'],
 		template: `
 			<div>
+				
 				<h1>Arrêt : {{ this.$parent.getStopById(idstop) }}</h1>
 				<h2>{{ this.$parent.getLineById(idline) }}</h2>
 				<ul>
-					<li v-for="mission in this.$parent.missions">
-						<a :href="'http://zenbus.net/tan?busStop=' +encodeURIComponent(this.$parent.getStopByStopAreaMission(idstop, mission.id))+ '&route='+ encodeURIComponent(idline) + '&direction=' + encodeURIComponent(mission.direction)" target="_blank">{{ mission.name }}</a>
+					<li v-for="mission in this.$parent.currentMissions">
+						<a :href="'http://zenbus.net/tan?route='+ encodeURIComponent(idline) + '&busStop=' + encodeURIComponent(getStop(mission, idstop))">{{mission.name}}</a>
 					</li>
 				</ul>
 			</div>
-		`
-
+		`,
+		
+		methods: {
+			getStop: function(mission, stopParentId){
+				
+				var stopId;
+				
+				this.$parent.stops.forEach(function(poi){
+					if(poi.parent === stopParentId && mission.pois[poi.id] ){
+						stopId = poi.id;
+					}
+				});
+				
+				return stopId;
+			}
+		}
 }
+
 
 // 2. Define some routes
 // Each route should map to a component. The "component" can
@@ -65,8 +81,8 @@ const app = new Vue({
 		  {id:'85-0', name: '85 - Bois St-Lys - Haluchère - Batignolles'}
 	  ],
 	  missions: [
-		  {id:'16391435-HT19H101-00-25-BLEU', name: 'Hôtel de Région - Jonelière', direction: '0', pois: {'StopPoint:CSMP2': [259]}},
-		  {id:'16391471-HT19H101-00-25-BLEU', name: 'Jonelière - Hôtel de Région', direction: '1', pois: {'StopPoint:CSMP3': [193]}},
+		  {id:'16391435-HT19H101-00-25-BLEU', name: 'Hôtel de Région - Jonelière', direction: '0', pois: {'StopPoint:CSMP2': [259]}, routeId:'26-0'},
+		  {id:'16391471-HT19H101-00-25-BLEU', name: 'Jonelière - Hôtel de Région', direction: '1', pois: {'StopPoint:CSMP3': [193]}, routeId:'26-0'},
 	  ]
   },
   methods: {
@@ -101,7 +117,6 @@ const app = new Vue({
 				  }
 			  }
 		  }
-		  
 	  }
   },
   computed: {
@@ -110,6 +125,14 @@ const app = new Vue({
 	       var vm = this;
 	       return stop.name.toLowerCase().includes(vm.query.toLowerCase())
 	     })
+	   },
+	   currentMissions(){ 
+		   return this.missions.filter(mission => {
+			   if(mission.routeId === this.$route.params.idline){
+				   return mission;
+			   }
+		   });
 	   }
+	  
 	}
-})
+});

@@ -2,19 +2,43 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en">
 	<head>
 		<meta http-equiv="content-type" content="application/xhtml+xml; charset=UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<title>Demo - Contextual Opening in Zenbus</title>
+		
+		<link rel="stylesheet" href="https://unpkg.com/purecss@1.0.0/build/pure-min.css" integrity="sha384-nn4HPE8lTHyVtfCBi5yW9d20FjT8BJwUXyWZT9InLYax14RDjBj46LmSztkmNP9w" crossorigin="anonymous">
+		<link href="https://fonts.googleapis.com/css?family=Gentium+Book+Basic:400,700|Lato:300,400,700,900" rel="stylesheet">
 		<script src="https://unpkg.com/vue/dist/vue.js"></script>
 		<script src="https://unpkg.com/vue-router/dist/vue-router.js"></script>
+		<style>
+			body {
+				font-family:"Lato", sans-serif;
+				color:#142840;
+			}
+			#app {
+				padding:15px;
+			}
+			
+			.pure-form .pure-radio {
+				display:inline-block;
+			}
+			input[type=radio] {
+			    visibility:hidden;
+			}
+			label {
+				width:100%;
+				border: 1px solid #142840;
+				border-radius:5px;
+				line-height:2em;
+			}
+			input[type=radio]:checked + label{
+				background:#eee;
+			}
+			
+		</style>
 	</head>	
 	
 	<body>
-  		<div id="app">
-  			<form id="search">
-				<input name="query" v-model="query" placeholder="Chercher un arrêt">
-			</form>
-			<ul>
-				<li v-for="stop in filteredStops" v-if="stop.type == 1"><router-link v-bind:to="'/stop/' + stop.id">{{ stop.name }}</router-link></li>
-			</ul>
+  		<div id="app" style="padding:15px">
 	    	<!-- use router-link component for navigation. -->
 	    	<!-- specify the link by passing the `to` prop. -->
 	    	<!-- `<router-link>` will be rendered as an `<a>` tag by default -->

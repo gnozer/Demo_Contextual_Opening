@@ -1,21 +1,53 @@
 // 1. Define route components.
 // These can be imported from other files
+const selectStopArea = {
+		data : function(){
+			return {
+				query: ''
+			}
+		},
+		template: `<div><form id="search" class="pure-form">
+					<input name="query" v-model="query" class="pure-input-rounded pure-input-1" placeholder="Chercher un arrêt">
+				</form>
+				<ul class="pure-menu-list">
+					<li v-for="stop in filteredStops" v-if="stop.type == 1" class="pure-menu-item"><router-link v-bind:to="'/stop/' + stop.id" class="pure-menu-link">{{ stop.name }}</router-link></li>
+				</ul></div>`,
+		computed: {
+			 filteredStops() {
+			     return this.$parent.stops.filter(stop => {
+			       var vm = this;
+			       return stop.name.toLowerCase().includes(vm.query.toLowerCase())
+			     })
+			   }
+		}
+}
 const selectLine = { 
 		props: ['idstop'],
-		template: '<div><h1>Arrêt : {{ this.$parent.getStopById(idstop) }}</h1><ul><li v-for="line in this.$parent.lines"><router-link v-bind:to="\'/stop/\' + idstop +\'/line/\' + line.id">{{ line.name }}</router-link></li></ul></div>'
+		template: '<div><h1>Arrêt : {{ this.$parent.getStopById(idstop) }}</h1><ul class="pure-menu-list"><li v-for="line in this.$parent.lines" class="pure-menu-item"><router-link v-bind:to="\'/stop/\' + idstop +\'/line/\' + line.id" class="pure-menu-link">{{ line.name }}</router-link></li></ul></div>'
 }
 const selectMission = { 
 		props: ['idstop', 'idline'],
+		data: function(){
+			return {
+				idMission:'0',
+			}
+		},
 		template: `
 			<div>
 				
 				<h1>Arrêt : {{ this.$parent.getStopById(idstop) }}</h1>
 				<h2>{{ this.$parent.getLineById(idline) }}</h2>
-				<ul>
-					<li v-for="mission in this.$parent.currentMissions">
-						<a :href="'http://zenbus.net/tan?route='+ encodeURIComponent(idline) + '&busStop=' + encodeURIComponent(getStop(mission, idstop))">{{mission.name}}</a>
+				<!--<ul class="pure-menu-list">
+					<li v-for="mission in this.$parent.currentMissions" class="pure-menu-item">
+						<a :href="'https://zenbus.net/tan?route='+ encodeURIComponent(idline) + '&busStop=' + encodeURIComponent(getStop(mission, idstop))" class="pure-menu-link">{{mission.name}}</a>
 					</li>
-				</ul>
+				</ul>-->
+				<form class="pure-form pure-form-aligned">
+				<label :for="mission.id" class="pure-radio" v-for="mission in this.$parent.currentMissions">
+			        <input :id="mission.id" type="radio" name="optionsRadios" :value="mission.id" class="pure-radio" v-model="idMission" @click="sendPopup">
+			        {{ mission.name }}
+			    </label>
+			    </form>
 			</div>
 		`,
 		
@@ -31,6 +63,9 @@ const selectMission = {
 				});
 				
 				return stopId;
+			},
+			sendPopup: function(){
+				console.log("hello");
 			}
 		}
 }
@@ -42,6 +77,7 @@ const selectMission = {
 // `Vue.extend()`, or just a component options object.
 // We'll talk about nested routes later.
 const routes = [
+  { path: '/', component: selectStopArea },
   { path: '/stop/:idstop', component: selectLine, props: true },
   { path: '/stop/:idstop/line/:idline', component: selectMission, props: true }
 ]
@@ -61,7 +97,6 @@ const app = new Vue({
   router,
   el: '#app',
   data: {
-	  query: '',
 	  stops: [
 		  {id:'StopArea:CSMP', name: 'Casimir Périer', type:1},
 		  {id:'StopArea:COMM', name: 'Commerce', type:1},
@@ -120,12 +155,6 @@ const app = new Vue({
 	  }
   },
   computed: {
-	   filteredStops() {
-	     return this.stops.filter(stop => {
-	       var vm = this;
-	       return stop.name.toLowerCase().includes(vm.query.toLowerCase())
-	     })
-	   },
 	   currentMissions(){ 
 		   return this.missions.filter(mission => {
 			   if(mission.routeId === this.$route.params.idline){

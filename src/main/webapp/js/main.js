@@ -15,8 +15,7 @@ const selectStopArea = {
 		computed: {
 			 filteredStops() {
 			     return this.$parent.stops.filter(stop => {
-			       var vm = this;
-			       return stop.name.toLowerCase().includes(vm.query.toLowerCase())
+			       return stop.name.toLowerCase().includes(this.query.toLowerCase())
 			     })
 			   }
 		}

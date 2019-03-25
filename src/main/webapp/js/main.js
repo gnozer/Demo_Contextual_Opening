@@ -10,7 +10,7 @@ const selectStopArea = {
 					<input name="query" v-model="query" class="pure-input-rounded pure-input-1" placeholder="Chercher un arrêt">
 				</form>
 				<ul class="pure-menu-list">
-					<li v-for="stop in filteredStops" v-if="stop.type == 1" class="pure-menu-item"><router-link v-bind:to="'/stop/' + stop.id" class="pure-menu-link">{{ stop.name }}</router-link></li>
+					<li v-for="stop in filteredStops" v-if="stop.type == 1" class="pure-menu-item"><router-link v-bind:to="'/stop/' + stop.uri" class="pure-menu-link">{{ stop.name }}</router-link></li>
 				</ul></div>`,
 		computed: {
 			 filteredStops() {
@@ -22,29 +22,23 @@ const selectStopArea = {
 }
 const selectLine = { 
 		props: ['idstop'],
-		template: '<div><h1>Arrêt : {{ this.$parent.getStopById(idstop) }}</h1><ul class="pure-menu-list"><li v-for="line in this.$parent.lines" class="pure-menu-item"><router-link v-bind:to="\'/stop/\' + idstop +\'/line/\' + line.id" class="pure-menu-link">{{ line.name }}</router-link></li></ul></div>'
+		template: '<div><h1>Arrêt : {{ this.$parent.getStopById(idstop) }}</h1><ul class="pure-menu-list"><li v-for="line in this.$parent.lines" class="pure-menu-item"><router-link v-bind:to="\'/stop/\' + idstop +\'/line/\' + line.uri" class="pure-menu-link">{{ line.name }}</router-link></li></ul></div>'
 }
 const selectMission = { 
 		props: ['idstop', 'idline'],
 		data: function(){
 			return {
-				idMission:'0',
+				currentMission: null,
 				showModal:false,
 			}
 		},
 		template: `
 			<div>
-				
 				<h1>Arrêt : {{ this.$parent.getStopById(idstop) }}</h1>
 				<h2>{{ this.$parent.getLineById(idline) }}</h2>
-				<!--<ul class="pure-menu-list">
-					<li v-for="mission in this.$parent.currentMissions" class="pure-menu-item">
-						<a :href="'https://zenbus.net/tan?route='+ encodeURIComponent(idline) + '&busStop=' + encodeURIComponent(getStop(mission, idstop))" class="pure-menu-link">{{mission.name}}</a>
-					</li>
-				</ul>-->
 				<form class="pure-form pure-form-aligned">
-				<label :for="mission.id" class="pure-radio" v-for="mission in this.$parent.currentMissions">
-			        <input :id="mission.id" type="radio" name="optionsRadios" :value="mission.id" class="pure-radio" v-model="idMission" @click="showModal = true">
+				<label :for="mission.uri" class="pure-radio" v-for="mission in this.$parent.currentMissions">
+			        <input :id="mission.uri" type="radio" name="optionsRadios" :value="mission" class="pure-radio" v-model="currentMission" @click="showModal = true">
 			        {{ mission.name }}
 			    </label>
 			    </form>
@@ -56,8 +50,8 @@ const selectMission = {
 							Choose your destination between Zenbus App and Zenbus Iframe.
 						</div>
 						<div class="buttons-container">
-							<button class="button-popup">Zenbus App</button>
-							<button class="button-popup">Iframe</button>
+							<button @click="zenbusRedir(idline, getStop(currentMission, idstop))" class="button-popup">Zenbus App</button>
+							<button @click="zenbusLoad(idline, getStop(currentMission, idstop))" class="button-popup">Iframe</button>
 						</div>
 					</div>
 				</div>
@@ -71,12 +65,27 @@ const selectMission = {
 				var stopId;
 				
 				this.$parent.stops.forEach(function(poi){
-					if(poi.parent === stopParentId && mission.pois[poi.id] ){
-						stopId = poi.id;
+					if(poi.parent === stopParentId && mission.pois[poi.uri] ){
+						stopId = poi.uri;
 					}
 				});
 				
 				return stopId;
+			},
+			
+			zenbusRedir: function(routeId, stopId){ 
+		        if(Android){ 
+		          Android.zenbusRedir("tan", routeId, stopId); 
+		        } 
+		      }, 
+		      
+		      zenbusLoad: function(routeId, stopId){ 
+			        if(Android){ 
+			          Android.zenbusLoad("tan", routeId, stopId); 
+			        } 
+			      },  
+			sendPopup: function(){
+				console.log("hello");
 			}
 		}
 }
@@ -109,39 +118,23 @@ const app = new Vue({
   el: '#app',
   data: {
 	  stops: [
-		  {id:'StopArea:CSMP', name: 'Casimir Périer', type:1},
-		  {id:'StopArea:COMM', name: 'Commerce', type:1},
-		  {id:'StopArea:CNGO', name: 'Congo', type:1},
-		  {id:'StopArea:CORA', name: 'Conraie', type:1},
-		  {id:'StopArea:CSVA', name: 'Conservatoire', type:1},
-		  {id:'StopArea:COQU', name: 'Coquelicots', type:1},
-		  {id:'StopPoint:CSMP2', name: 'Casimir Périer', parent: 'StopArea:CSMP', type:0},
-		  {id:'StopPoint:CSMP3', name: 'Casimir Périer', parent: 'StopArea:CSMP', type:0},
-		  
 	  ],
-	  lines: [
-		  {id:'26-0', name: '26 - Jonelière - Hôtel de Région'},
-		  {id:'36-0', name: '36 - Gréneraie - Croix Jeannette'},
-		  {id:'50-0', name: '50 - Basse Indre - Porte de La Chapelle'},
-		  {id:'67-0', name: '67 - Le Cellier - Centre de Thouaré'},
-		  {id:'85-0', name: '85 - Bois St-Lys - Haluchère - Batignolles'}
+	  lines: [		  
 	  ],
 	  missions: [
-		  {id:'16391435-HT19H101-00-25-BLEU', name: 'Hôtel de Région - Jonelière', direction: '0', pois: {'StopPoint:CSMP2': [259]}, routeId:'26-0'},
-		  {id:'16391471-HT19H101-00-25-BLEU', name: 'Jonelière - Hôtel de Région', direction: '1', pois: {'StopPoint:CSMP3': [193]}, routeId:'26-0'},
 	  ]
   },
   methods: {
 	  getStopById: function(id) {
 		  for(var i = 0; i < this.stops.length; i++) {
-			  if(this.stops[i].id === id){
+			  if(this.stops[i].uri === id){
 				  return this.stops[i].name;
 			  }
 		  }
 	  },
 	  getLineById: function(id) {
 		  for(var i = 0; i < this.lines.length; i++) {
-			  if(this.lines[i].id === id){
+			  if(this.lines[i].uri === id){
 				  return this.lines[i].name;
 			  }
 		  }
@@ -149,7 +142,7 @@ const app = new Vue({
 	  getStopByStopAreaMission: function(idStopArea, idMission) {
 		  var mission;
 		  for(var i = 0; i < this.missions.length; i++) {
-			  if(this.missions[i].id === idMission){
+			  if(this.missions[i].uri === idMission){
 				  mission = this.missions[i];
 			  }
 		  }
@@ -157,18 +150,38 @@ const app = new Vue({
 		  for(var i = 0; i < this.stops.length; i++){
 			  if(this.stops[i].parent === idStopArea){
 				  for(var j = 0; j < Object.keys(mission.pois).length; j++) {
-					  if (this.stops[i].id === Object.keys(mission.pois)[j]){
+					  if (this.stops[i].uri === Object.keys(mission.pois)[j]){
 						  return Object.keys(mission.pois)[j];
 					  }
 				  }
 			  }
 		  }
+	  },
+	  
+	  alphaSort: function(a, b){
+		  if(a.name < b.name) { return -1;}
+		  if(a.name > b.name) { return 1; }
 	  }
+  },
+  
+  mounted: function() {
+	  this.$http.get('http://zenbus.net/api/tan').then(function(response){
+		  var content = JSON.parse(response.bodyText);
+		  this.stops = content.pois;
+		  this.stops.sort(this.alphaSort);
+		  
+		  this.lines = content.routes;
+		  this.lines.sort(this.alphaSort);
+		  
+		  this.missions = content.missions;
+		  this.lines.sort(this.alphaSort);
+		  
+ 	  }.bind(this));
   },
   computed: {
 	   currentMissions(){ 
 		   return this.missions.filter(mission => {
-			   if(mission.routeId === this.$route.params.idline){
+			   if(mission.route === this.$route.params.idline){
 				   return mission;
 			   }
 		   });

@@ -15,9 +15,6 @@
 				font-family:"Lato", sans-serif;
 				color:#142840;
 			}
-			#app {
-				padding:15px;
-			}
 			
 			.pure-form .pure-radio {
 				display:inline-block;
@@ -85,8 +82,8 @@
 			}
 			.popup .close {
 			  position: absolute;
-			  top: 20px;
-			  right: 30px;
+			  top: 0px;
+			  right: 10px;
 			  transition: all 200ms;
 			  font-size: 30px;
 			  font-weight: bold;
@@ -114,6 +111,50 @@
 				border-left: 3px solid #142840;
 			}
 			
+			.loader-container {
+				position: fixed;
+			   top: 0;
+			   z-index: 9000;
+			   left: 0;
+			   right: 0;
+			   bottom: 0;
+				background-color: rgba(0, 0, 0, 0.6);
+			}
+			
+			.loader {
+				position: fixed;
+			   border: 16px solid #f3f3f3; /* Light grey */
+			   border-top: 16px solid #3498db; /* Blue */
+			   border-radius: 50%;
+			   width: 120px;
+			   height: 120px;
+			   margin: auto;
+			   top: 0;
+			   left: 0;
+			   bottom: 0;
+			   right: 0;
+			   animation: spin 2s linear infinite;
+			}
+			
+			.search-bar {
+				overflow:hidden;
+				position:fixed;
+				top:0;
+				width:97%;
+				background:#fff;
+				z-index:100;
+				margin:5px;
+			}
+			
+			.stops-list{
+				margin-top:42px;
+				padding: 0 5px;
+			}
+			
+			.select-line, .select-mission {
+				padding:5px;
+			}
+			
 			@media screen and (max-width: 700px){
 			  .box{
 			    width: 70%;
@@ -128,6 +169,8 @@
 	
 	<body>
   		<div id="app">
+  			<div class="loader-container" v-if="loading" v-cloak><div class="loader"></div></div>
+  		
 	    	<!-- use router-link component for navigation. -->
 	    	<!-- specify the link by passing the `to` prop. -->
 	    	<!-- `<router-link>` will be rendered as an `<a>` tag by default -->

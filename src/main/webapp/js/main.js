@@ -6,24 +6,30 @@ const selectStopArea = {
 				query: ''
 			}
 		},
-		template: `<div><form id="search" class="pure-form">
+		template: `<div><form id="search" class="pure-form search-bar">
 					<input name="query" v-model="query" class="pure-input-rounded pure-input-1" placeholder="Chercher un arrêt">
 				</form>
-				<ul class="pure-menu-list">
+				<ul class="pure-menu-list stops-list">
 					<li v-for="stop in filteredStops" v-if="stop.type == 1" class="pure-menu-item"><router-link v-bind:to="'/stop/' + stop.uri" class="pure-menu-link">{{ stop.name }}</router-link></li>
 				</ul></div>`,
 		computed: {
 			 filteredStops() {
 			     return this.$parent.stops.filter(stop => {
-			       var vm = this;
-			       return stop.name.toLowerCase().includes(vm.query.toLowerCase())
+			       return stop.name.toLowerCase().includes(this.query.toLowerCase())
 			     })
 			   }
 		}
 }
 const selectLine = { 
 		props: ['idstop'],
-		template: '<div><h1>Arrêt : {{ this.$parent.getStopById(idstop) }}</h1><ul class="pure-menu-list"><li v-for="line in this.$parent.lines" class="pure-menu-item"><router-link v-bind:to="\'/stop/\' + idstop +\'/line/\' + line.uri" class="pure-menu-link">{{ line.name }}</router-link></li></ul></div>'
+		template: `<div class="select-line">
+						<h2>Arrêt : {{ this.$parent.getStopById(idstop) }}</h2>
+						<ul class="pure-menu-list">
+							<li v-for="line in this.$parent.currentLines" class="pure-menu-item" :style="{ borderLeft: '3px solid '+ line.color }">
+								<router-link v-bind:to="\'/stop/\' + idstop +\'/line/\' + line.uri" class="pure-menu-link">{{ line.name }}</router-link>
+							</li>
+						</ul>
+					</div>`
 }
 const selectMission = { 
 		props: ['idstop', 'idline'],
@@ -34,9 +40,9 @@ const selectMission = {
 			}
 		},
 		template: `
-			<div>
-				<h1>Arrêt : {{ this.$parent.getStopById(idstop) }}</h1>
-				<h2>{{ this.$parent.getLineById(idline) }}</h2>
+			<div class="select-mission">
+				<h2>Arrêt : {{ this.$parent.getStopById(idstop) }}</h2>
+				<h3>{{ this.$parent.getLineById(idline) }}</h3>
 				<form class="pure-form pure-form-aligned">
 				<label :for="mission.uri" class="pure-radio" v-for="mission in this.$parent.currentMissions">
 			        <input :id="mission.uri" type="radio" name="optionsRadios" :value="mission" class="pure-radio" v-model="currentMission" @click="showModal = true">
@@ -123,7 +129,8 @@ const app = new Vue({
 	  lines: [		  
 	  ],
 	  missions: [
-	  ]
+	  ],
+	  loading:false
   },
   methods: {
 	  getStopById: function(id) {
@@ -162,11 +169,37 @@ const app = new Vue({
 	  alphaSort: function(a, b){
 		  if(a.name < b.name) { return -1;}
 		  if(a.name > b.name) { return 1; }
+	  },
+	  
+	  setDatas: function() {
+		  for(var i = 0; i < this.lines.length ; i ++ ){
+			  this.lines[i].stops = [];
+			  this.lines[i].stopAreas= [];
+			  for(var j = 0; j < this.missions.length; j++){
+				  if(this.lines[i].uri === this.missions[j].route){
+					  for(var k = 0; k < Object.keys(this.missions[j].pois).length; k++) {
+						  this.lines[i].stops.push(Object.keys(this.missions[j].pois)[k]);
+					  }
+				  }
+			  }
+		  }
+		  
+		  for(var i = 0; i < this.stops.length; i++){
+			  for(var j = 0; j < this.lines.length; j++){
+				  for (var k = 0; k < this.lines[j].stops.length; k++){
+					  if(this.lines[j].stops[k] === this.stops[i].uri && this.lines[j].stopAreas.indexOf(this.stops[i].parent) === -1){
+						  this.lines[j].stopAreas.push(this.stops[i].parent);
+					  }
+				  }
+			  }
+		  }
 	  }
   },
   
   mounted: function() {
+	  this.loading = true;
 	  this.$http.get('http://zenbus.net/api/tan').then(function(response){
+		  this.loading = false;
 		  var content = JSON.parse(response.bodyText);
 		  this.stops = content.pois;
 		  this.stops.sort(this.alphaSort);
@@ -175,7 +208,9 @@ const app = new Vue({
 		  this.lines.sort(this.alphaSort);
 		  
 		  this.missions = content.missions;
-		  this.lines.sort(this.alphaSort);
+		  this.missions.sort(this.alphaSort);
+		  
+		  this.setDatas();
 		  
  	  }.bind(this));
   },
@@ -186,7 +221,15 @@ const app = new Vue({
 				   return mission;
 			   }
 		   });
-	   }
+	   },
+	   currentLines() {
+			return this.lines.filter(line => {
+				if(line.stopAreas.indexOf(this.$route.params.idstop) != -1){
+					return line;
+				}
+				
+			});
+		}
 	  
 	}
 });

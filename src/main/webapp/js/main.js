@@ -10,8 +10,21 @@ const selectStopArea = {
 					<input name="query" v-model="query" class="pure-input-rounded pure-input-1" placeholder="Chercher un arrêt">
 				</form>
 				<ul class="pure-menu-list stops-list">
-					<li v-for="stop in filteredStops" v-if="stop.type == 1" class="pure-menu-item"><router-link v-bind:to="'/stop/' + stop.uri" class="pure-menu-link">{{ stop.name }}</router-link></li>
+					<li v-for="(stop, index) in filteredStops" v-if="stop.type == 1" class="pure-menu-item"><router-link v-bind:to="'/stop/' + stop.uri" class="pure-menu-link">{{ stop.name }}<span class="route-code" v-for="(line, i) in getLinesByStopArea(stop)" :style="{backgroundColor: line.color}">{{ line.code }}</span></router-link></li>
 				</ul></div>`,
+		methods: {
+			getLinesByStopArea: function(stopArea){
+				var linesOfStop = [];
+				for(var i = 0; i < this.$parent.lines.length; i++){
+					for(var j = 0; j < this.$parent.lines[i].stopAreas.length; j++){
+						if(stopArea.uri === this.$parent.lines[i].stopAreas[j]){
+							linesOfStop.push(this.$parent.lines[i]);
+						}
+					}
+				}
+				return linesOfStop;
+			}
+		},
 		computed: {
 			 filteredStops() {
 			     return this.$parent.stops.filter(stop => {
@@ -44,13 +57,13 @@ const selectStopAndMission = {
 		template: `
 			<div class="select-mission">
 				<h2>Arrêt : {{ this.$parent.getStopById(idstop) }}</h2>
-				<h3>{{ this.$parent.getLineById(idline) }}</h3>
+				<h3  :style="{ borderLeft: '3px solid '+ this.$parent.getColorByLineId(idline), paddingLeft:'5px' }">{{ this.$parent.getLineById(idline) }}</h3>
 				<form class="pure-form pure-form-aligned">
 				<label :for="poi.uri" class="pure-radio" v-for="poi in this.$parent.currentPois">
 			        <input :id="poi.uri" type="radio" name="optionsRadios" :value="poi.uri" class="pure-radio" v-model="currentPoi" @click="showModal = true">
 			        <i class="arrow right"></i>{{ poi.name }} - <span class="poi-uri">[{{ poi.uri }}]</span>
 			        <ul>
-			        	<li v-for="(mission, i) in poi.missions" v-if="i > 0 && mission.name != poi.missions[i-1].name">{{ mission.name }}</li>
+			        	<li v-for="(mission, i) in poi.missions" v-if="(i == 0) || (i > 0 && mission.name != poi.missions[i-1].name)">{{ mission.name }}</li>
 			        </ul>
 			    </label>
 			    </form>
@@ -137,12 +150,17 @@ const app = new Vue({
 			  }
 		  }
 	  },
-	  
+	  getColorByLineId: function(id){
+		  for(var i = 0; i < this.lines.length; i++){
+			  if(this.lines[i].uri === id){
+				  return this.lines[i].color;
+			  }
+		  }
+	  },	  
 	  alphaSort: function(a, b){
 		  if(a.name < b.name) { return -1;}
 		  if(a.name > b.name) { return 1; }
 	  },
-	  
 	  setDatas: function() {
 		  for(var i = 0; i < this.lines.length ; i ++ ){
 			  this.lines[i].stops = [];

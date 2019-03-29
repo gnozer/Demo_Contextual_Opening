@@ -199,21 +199,71 @@ const app = new Vue({
   
   mounted: function() {
 	  this.loading = true;
-	  this.$http.get('http://zenbus.net/api/tan').then(function(response){
-		  this.loading = false;
-		  var content = JSON.parse(response.bodyText);
-		  this.stops = content.pois;
-		  this.stops.sort(this.alphaSort);
-		  
-		  this.lines = content.routes;
-		  this.lines.sort(this.alphaSort);
-		  
-		  this.missions = content.missions;
-		  this.missions.sort(this.alphaSort);
-		  
-		  this.setDatas();
-		  
- 	  }.bind(this));
+	  
+	  if(!localStorage.zb_version && !localStorage.zb_missions && !localStorage.zb_pois && !localStorage.zb_routes){
+		  this.$http.get('https://zenbus.net/api/tan').then(function(response){
+			  this.loading = false;
+			  var content = JSON.parse(response.bodyText);
+			  
+			  this.stops = content.pois;
+			  this.stops.sort(this.alphaSort);
+			  
+			  this.lines = content.routes;
+			  this.lines.sort(this.alphaSort);
+			  
+			  this.missions = content.missions;
+			  this.missions.sort(this.alphaSort);
+			  
+			  this.version = content.v;
+			  
+			  this.setDatas();
+			  
+			  localStorage.zb_version = JSON.stringify(this.version);
+			  localStorage.zb_missions = JSON.stringify(this.missions);
+			  localStorage.zb_pois = JSON.stringify(this.stops);
+			  localStorage.zb_routes = JSON.stringify(this.lines);
+			  
+	 	  }.bind(this));
+	  } else {
+		  var url = 'https://zenbus.net/api/tan?v='+localStorage.zb_version;
+		  this.$http.get(url).then(function(response){
+			  this.loading = false;
+			  var content = JSON.parse(response.bodyText);
+			  
+			  if(content.pois && content.routes && content.missions){
+				  this.stops = content.pois;
+				  this.stops.sort(this.alphaSort);
+				  
+				  this.lines = content.routes;
+				  this.lines.sort(this.alphaSort);
+				  
+				  this.missions = content.missions;
+				  this.missions.sort(this.alphaSort);
+				  
+				  this.version = content.v;
+				  
+				  this.setDatas();
+				  
+				  localStorage.zb_version = JSON.stringify(this.version);
+				  localStorage.zb_missions = JSON.stringify(this.missions);
+				  localStorage.zb_pois = JSON.stringify(this.stops);
+				  localStorage.zb_routes = JSON.stringify(this.routes);
+			  } else {
+				  console.log("coucou");
+				  this.stops = JSON.parse(localStorage.zb_pois);
+				  this.stops.sort(this.alphaSort);
+				  
+				  this.lines = JSON.parse(localStorage.zb_routes);
+				  this.lines.sort(this.alphaSort);
+				  
+				  this.missions = JSON.parse(localStorage.zb_missions);
+				  this.missions.sort(this.alphaSort);
+				  
+				  this.setDatas();
+			  }
+			  
+	 	  }.bind(this));
+	  }
   },
   computed: {
 	   currentMissions(){ 

@@ -57,12 +57,11 @@ const selectMission = {
 							Choose your destination between Zenbus App and Zenbus Iframe.
 						</div>
 						<div class="buttons-container">
-							<button @click="zenbusRedir(idline, getStop(currentMission, idstop))" class="button-popup">Zenbus App</button>
-							<button @click="zenbusLoad(idline, getStop(currentMission, idstop))" class="button-popup">Iframe</button>
+							<button @click="zenbusNative(idline, getStop(currentMission, idstop))" class="button-popup">Zenbus App</button>
+							<button @click="zenbusIframe(idline, getStop(currentMission, idstop))" class="button-popup">Iframe</button>
 						</div>
 					</div>
 				</div>
-						    
 			</div>
 		`,
 		
@@ -80,15 +79,19 @@ const selectMission = {
 				return stopId;
 			},
 			
-			zenbusRedir: function(routeId, stopId){ 
+			zenbusNative: function(routeId, stopId){ 
 		        if(Android){ 
-		          Android.zenbusRedir("tan", routeId, stopId); 
+		          console.log("route id: " + routeId);
+			      console.log("stop id: " + stopId);
+		          Android.zenbusNative("tan", routeId, stopId); 
 		        } 
 		      }, 
 		      
-		      zenbusLoad: function(routeId, stopId){ 
+		      zenbusIframe: function(routeId, stopId){ 
 			        if(Android){ 
-			          Android.zenbusLoad("tan", routeId, stopId); 
+			          console.log("route id: " + routeId);
+			          console.log("stop id: " + stopId);
+			          Android.zenbusIframe("tan", routeId, stopId); 
 			        } 
 			      },  
 			sendPopup: function(){
@@ -130,7 +133,7 @@ const app = new Vue({
 	  ],
 	  missions: [
 	  ],
-	  loading:false
+	  loading:true
   },
   methods: {
 	  getStopById: function(id) {
@@ -193,17 +196,17 @@ const app = new Vue({
 				  }
 			  }
 		  }
+		  this.loading = false;
 	  }
   },
   
   mounted: function() {
-	  this.loading = true;
 	  this.$http.get('http://zenbus.net/api/tan').then(function(response){
-		  this.loading = false;
+		  
 		  var content = JSON.parse(response.bodyText);
 		  this.stops = content.pois;
 		  this.stops.sort(this.alphaSort);
-		  
+
 		  this.lines = content.routes;
 		  this.lines.sort(this.alphaSort);
 		  
@@ -227,9 +230,7 @@ const app = new Vue({
 				if(line.stopAreas.indexOf(this.$route.params.idstop) != -1){
 					return line;
 				}
-				
 			});
 		}
-	  
 	}
 });

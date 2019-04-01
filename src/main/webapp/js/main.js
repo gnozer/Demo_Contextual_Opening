@@ -10,8 +10,21 @@ const selectStopArea = {
 					<input name="query" v-model="query" class="pure-input-rounded pure-input-1" placeholder="Chercher un arrêt">
 				</form>
 				<ul class="pure-menu-list stops-list">
-					<li v-for="stop in filteredStops" v-if="stop.type == 1" class="pure-menu-item"><router-link v-bind:to="'/stop/' + stop.uri" class="pure-menu-link">{{ stop.name }}</router-link></li>
+					<li v-for="(stop, index) in filteredStops" v-if="stop.type == 1" class="pure-menu-item"><router-link v-bind:to="'/stop/' + stop.uri" class="pure-menu-link">{{ stop.name }}<span class="route-code" v-for="(line, i) in getLinesByStopArea(stop)" :style="{backgroundColor: line.color}">{{ line.code }}</span></router-link></li>
 				</ul></div>`,
+		methods: {
+			getLinesByStopArea: function(stopArea){
+				var linesOfStop = [];
+				for(var i = 0; i < this.$parent.lines.length; i++){
+					for(var j = 0; j < this.$parent.lines[i].stopAreas.length; j++){
+						if(stopArea.uri === this.$parent.lines[i].stopAreas[j]){
+							linesOfStop.push(this.$parent.lines[i]);
+						}
+					}
+				}
+				return linesOfStop;
+			}
+		},
 		computed: {
 			 filteredStops() {
 			     return this.$parent.stops.filter(stop => {
@@ -31,22 +44,27 @@ const selectLine = {
 						</ul>
 					</div>`
 }
-const selectMission = { 
+
+const selectStopAndMission = {
 		props: ['idstop', 'idline'],
 		data: function(){
 			return {
-				currentMission: null,
+				currentPoi: null,
 				showModal:false,
+				missionNames : []
 			}
 		},
 		template: `
 			<div class="select-mission">
 				<h2>Arrêt : {{ this.$parent.getStopById(idstop) }}</h2>
-				<h3>{{ this.$parent.getLineById(idline) }}</h3>
+				<h3  :style="{ borderLeft: '3px solid '+ this.$parent.getColorByLineId(idline), paddingLeft:'5px' }">{{ this.$parent.getLineById(idline) }}</h3>
 				<form class="pure-form pure-form-aligned">
-				<label :for="mission.uri" class="pure-radio" v-for="mission in this.$parent.currentMissions">
-			        <input :id="mission.uri" type="radio" name="optionsRadios" :value="mission" class="pure-radio" v-model="currentMission" @click="showModal = true">
-			        {{ mission.name }}
+				<label :for="poi.uri" class="pure-radio" v-for="poi in this.$parent.currentPois">
+			        <input :id="poi.uri" type="radio" name="optionsRadios" :value="poi.uri" class="pure-radio" v-model="currentPoi" @click="showModal = true">
+			        <i class="arrow right"></i>{{ poi.name }} - <span class="poi-uri">[{{ poi.uri }}]</span>
+			        <ul>
+			        	<li v-for="(mission, i) in poi.missions" v-if="(i == 0) || (i > 0 && mission.name != poi.missions[i-1].name)">{{ mission.name }}</li>
+			        </ul>
 			    </label>
 			    </form>
 			    <div id="popup1" class="overlay" v-show="showModal">
@@ -57,8 +75,8 @@ const selectMission = {
 							Choose your destination between Zenbus App and Zenbus Iframe.
 						</div>
 						<div class="buttons-container">
-							<button @click="zenbusNative(idline, getStop(currentMission, idstop))" class="button-popup">Zenbus App</button>
-							<button @click="zenbusIframe(idline, getStop(currentMission, idstop))" class="button-popup">Iframe</button>
+							<button @click="zenbusRedir(idline, currentPoi.uri)" class="button-popup pure-button">Zenbus App</button>
+							<button @click="zenbusLoad(idline, currentPoi.uri)" class="button-popup pure-button">Iframe</button>
 						</div>
 					</div>
 				</div>
@@ -66,18 +84,6 @@ const selectMission = {
 		`,
 		
 		methods: {
-			getStop: function(mission, stopParentId){
-				
-				var stopId;
-				
-				this.$parent.stops.forEach(function(poi){
-					if(poi.parent === stopParentId && mission.pois[poi.uri] ){
-						stopId = poi.uri;
-					}
-				});
-				
-				return stopId;
-			},
 			
 			zenbusNative: function(routeId, stopId){ 
 		        if(Android){ 
@@ -93,10 +99,7 @@ const selectMission = {
 			          console.log("stop id: " + stopId);
 			          Android.zenbusIframe("tan", routeId, stopId); 
 			        } 
-			      },  
-			sendPopup: function(){
-				console.log("hello");
-			}
+			      }
 		}
 }
 
@@ -109,7 +112,7 @@ const selectMission = {
 const routes = [
   { path: '/', component: selectStopArea },
   { path: '/stop/:idstop', component: selectLine, props: true },
-  { path: '/stop/:idstop/line/:idline', component: selectMission, props: true }
+  { path: '/stop/:idstop/line/:idline', component: selectStopAndMission, props: true }
 ]
 
 // 3. Create the router instance and pass the `routes` option
@@ -150,30 +153,17 @@ const app = new Vue({
 			  }
 		  }
 	  },
-	  getStopByStopAreaMission: function(idStopArea, idMission) {
-		  var mission;
-		  for(var i = 0; i < this.missions.length; i++) {
-			  if(this.missions[i].uri === idMission){
-				  mission = this.missions[i];
+	  getColorByLineId: function(id){
+		  for(var i = 0; i < this.lines.length; i++){
+			  if(this.lines[i].uri === id){
+				  return this.lines[i].color;
 			  }
 		  }
-		  var stopsOfArea = [];
-		  for(var i = 0; i < this.stops.length; i++){
-			  if(this.stops[i].parent === idStopArea){
-				  for(var j = 0; j < Object.keys(mission.pois).length; j++) {
-					  if (this.stops[i].uri === Object.keys(mission.pois)[j]){
-						  return Object.keys(mission.pois)[j];
-					  }
-				  }
-			  }
-		  }
-	  },
-	  
+	  },	  
 	  alphaSort: function(a, b){
 		  if(a.name < b.name) { return -1;}
 		  if(a.name > b.name) { return 1; }
 	  },
-	  
 	  setDatas: function() {
 		  for(var i = 0; i < this.lines.length ; i ++ ){
 			  this.lines[i].stops = [];
@@ -196,17 +186,17 @@ const app = new Vue({
 				  }
 			  }
 		  }
-		  this.loading = false;
 	  }
   },
   
   mounted: function() {
+	  this.loading = true;
 	  this.$http.get('http://zenbus.net/api/tan').then(function(response){
-		  
+		  this.loading = false;
 		  var content = JSON.parse(response.bodyText);
 		  this.stops = content.pois;
 		  this.stops.sort(this.alphaSort);
-
+		  
 		  this.lines = content.routes;
 		  this.lines.sort(this.alphaSort);
 		  
@@ -222,6 +212,13 @@ const app = new Vue({
 		   return this.missions.filter(mission => {
 			   if(mission.route === this.$route.params.idline){
 				   return mission;
+			   }
+		   });
+	   },
+	   currentPois(){ 
+		   return this.stops.filter(stop => {
+			   if(stop.parent == this.$route.params.idstop){
+				   return stop;
 			   }
 		   });
 	   },

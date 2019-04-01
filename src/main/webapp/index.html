@@ -77,7 +77,7 @@
 			
 			.popup h2 {
 			  margin-top: 0;
-			  color: #333;
+			  color: #142840;
 			  font-family: Tahoma, Arial, sans-serif;
 			}
 			.popup .close {
@@ -88,7 +88,7 @@
 			  font-size: 30px;
 			  font-weight: bold;
 			  text-decoration: none;
-			  color: #333;
+			  color: #142840;
 			}
 			.popup .close:hover {
 			  color: #06D85F;
@@ -101,9 +101,6 @@
 			
 			button.button-popup{
 				width:49%;
-				border:1px solid #142840;
-				height:40px;
-				background:none;
 			}
 			
 			.pure-menu-item {
@@ -111,6 +108,29 @@
 				border-left: 3px solid #142840;
 			}
 			
+			.pure-radio{
+			    font-size: 100%;
+			    color: rgba(21,45,65,.8);
+			    border: transparent;
+			    background-color: #E6E6E6;
+			    text-decoration: none;
+			    border-radius: 2px;
+			}
+			
+			.loader {
+				position: fixed;
+			   border: 16px solid #f3f3f3; /* Light grey */
+			   border-top: 16px solid #3498db; /* Blue */
+			   border-radius: 50%;
+			   width: 120px;
+			   height: 120px;
+			   margin: auto;
+			   top: 0;
+			   left: 0;
+			   bottom: 0;
+			   right: 0;
+			   animation: spin 2s linear infinite;
+			}
 			
 			.search-bar {
 				overflow:hidden;
@@ -119,16 +139,31 @@
 				width:97%;
 				background:#fff;
 				z-index:100;
-				margin:5px;
+				padding:5px;
 			}
 			
 			.stops-list{
-				margin-top:42px;
+				margin-top:52px;
 				padding: 0 5px;
 			}
 			
 			.select-line, .select-mission {
 				padding:5px;
+			}
+			
+			.poi-uri {
+				font-weight:bold;
+			}
+			
+			span.route-code {
+				color:white;
+			    float: right;
+			    padding: 3px;
+			    font-size: smaller;
+			    vertical-align: middle;
+			    border-radius: 2px;
+			    margin-left: 3px;
+			    font-weight: bold;
 			}
 			
 			@media screen and (max-width: 700px){
@@ -245,10 +280,7 @@
 	
 	<body>
   		<div id="app">
-  			
-  			<div class="loader" v-if="loading">
-             <div class="lds-roller"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>
-             </div>
+  			<div class="loader-container" v-if="loading" v-cloak><div class="loader"></div></div>
   		
 	    	<!-- use router-link component for navigation. -->
 	    	<!-- specify the link by passing the `to` prop. -->

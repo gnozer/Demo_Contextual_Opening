@@ -80,21 +80,24 @@ const selectStopAndMission = {
 						</div>
 					</div>
 				</div>
-						    
 			</div>
 		`,
 		
 		methods: {
 			
-			zenbusRedir: function(routeId, stopId){ 
+			zenbusNative: function(routeId, stopId){ 
 		        if(Android){ 
-		          Android.zenbusRedir("tan", routeId, stopId); 
+		          console.log("route id: " + routeId);
+			      console.log("stop id: " + stopId);
+		          Android.zenbusNative("tan", routeId, stopId); 
 		        } 
 		      }, 
 		      
-		      zenbusLoad: function(routeId, stopId){ 
+		      zenbusIframe: function(routeId, stopId){ 
 			        if(Android){ 
-			          Android.zenbusLoad("tan", routeId, stopId); 
+			          console.log("route id: " + routeId);
+			          console.log("stop id: " + stopId);
+			          Android.zenbusIframe("tan", routeId, stopId); 
 			        } 
 			      }
 		}
@@ -133,7 +136,7 @@ const app = new Vue({
 	  ],
 	  missions: [
 	  ],
-	  loading:false
+	  loading:true
   },
   methods: {
 	  getStopById: function(id) {
@@ -183,87 +186,26 @@ const app = new Vue({
 				  }
 			  }
 		  }
-		  
-		  for(var i = 0; i < this.stops.length; i++){
-			  if(this.stops[i].parent){
-				  this.stops[i].missions = [];
-				  for(var j = 0; j < this.missions.length; j++){
-					  if(this.missions[j].pois[this.stops[i].uri]){
-						  this.stops[i].missions.push(this.missions[j]) ;
-					  }
-				  }
-			  }
-		  }
 	  }
   },
   
   mounted: function() {
 	  this.loading = true;
-	  
-	  if(!localStorage.zb_version && !localStorage.zb_missions && !localStorage.zb_pois && !localStorage.zb_routes){
-		  this.$http.get('https://zenbus.net/api/tan').then(function(response){
-			  this.loading = false;
-			  var content = JSON.parse(response.bodyText);
-			  
-			  this.stops = content.pois;
-			  this.stops.sort(this.alphaSort);
-			  
-			  this.lines = content.routes;
-			  this.lines.sort(this.alphaSort);
-			  
-			  this.missions = content.missions;
-			  this.missions.sort(this.alphaSort);
-			  
-			  this.version = content.v;
-			  
-			  this.setDatas();
-			  
-			  localStorage.zb_version = JSON.stringify(this.version);
-			  localStorage.zb_missions = JSON.stringify(this.missions);
-			  localStorage.zb_pois = JSON.stringify(this.stops);
-			  localStorage.zb_routes = JSON.stringify(this.lines);
-			  
-	 	  }.bind(this));
-	  } else {
-		  var url = 'https://zenbus.net/api/tan?v='+localStorage.zb_version;
-		  this.$http.get(url).then(function(response){
-			  this.loading = false;
-			  var content = JSON.parse(response.bodyText);
-			  
-			  if(content.pois && content.routes && content.missions){
-				  this.stops = content.pois;
-				  this.stops.sort(this.alphaSort);
-				  
-				  this.lines = content.routes;
-				  this.lines.sort(this.alphaSort);
-				  
-				  this.missions = content.missions;
-				  this.missions.sort(this.alphaSort);
-				  
-				  this.version = content.v;
-				  
-				  this.setDatas();
-				  
-				  localStorage.zb_version = JSON.stringify(this.version);
-				  localStorage.zb_missions = JSON.stringify(this.missions);
-				  localStorage.zb_pois = JSON.stringify(this.stops);
-				  localStorage.zb_routes = JSON.stringify(this.routes);
-			  } else {
-				  console.log("coucou");
-				  this.stops = JSON.parse(localStorage.zb_pois);
-				  this.stops.sort(this.alphaSort);
-				  
-				  this.lines = JSON.parse(localStorage.zb_routes);
-				  this.lines.sort(this.alphaSort);
-				  
-				  this.missions = JSON.parse(localStorage.zb_missions);
-				  this.missions.sort(this.alphaSort);
-				  
-				  this.setDatas();
-			  }
-			  
-	 	  }.bind(this));
-	  }
+	  this.$http.get('http://zenbus.net/api/tan').then(function(response){
+		  this.loading = false;
+		  var content = JSON.parse(response.bodyText);
+		  this.stops = content.pois;
+		  this.stops.sort(this.alphaSort);
+		  
+		  this.lines = content.routes;
+		  this.lines.sort(this.alphaSort);
+		  
+		  this.missions = content.missions;
+		  this.missions.sort(this.alphaSort);
+		  
+		  this.setDatas();
+		  
+ 	  }.bind(this));
   },
   computed: {
 	   currentMissions(){ 
@@ -285,9 +227,7 @@ const app = new Vue({
 				if(line.stopAreas.indexOf(this.$route.params.idstop) != -1){
 					return line;
 				}
-				
 			});
 		}
-	  
 	}
 });

@@ -136,7 +136,8 @@ const app = new Vue({
 	  ],
 	  missions: [
 	  ],
-	  loading:true
+	  loading:true,
+	  version: 0
   },
   methods: {
 	  getStopById: function(id) {
@@ -186,26 +187,40 @@ const app = new Vue({
 				  }
 			  }
 		  }
+		  this.loading = false;
 	  }
   },
   
   mounted: function() {
 	  this.loading = true;
-	  this.$http.get('http://zenbus.net/api/tan').then(function(response){
-		  this.loading = false;
-		  var content = JSON.parse(response.bodyText);
-		  this.stops = content.pois;
-		  this.stops.sort(this.alphaSort);
+	  
+	  var localStorageData =  localStorage.zb_data ? JSON.parse(localStorage.zb_data) : null;  
+	  
+	  this.$http.get('https://zenbus.net/api/tan?v=' + (localStorageData ? localStorageData.version : this.version)).then(function(response){ 
 		  
-		  this.lines = content.routes;
-		  this.lines.sort(this.alphaSort);
+		  var 
+		  update = JSON.parse(response.bodyText);
 		  
-		  this.missions = content.missions;
-		  this.missions.sort(this.alphaSort);
+		  //Update (or first update)
+		  if(!this.localStorageData || this.localStorageData.version != update.v){
+			  this.self.stops = update.pois; 
+			  this.self.lines = update.routes; 
+			  this.self.missions = update.missions;
+			  this.self.version = update.v;
+			  
+		      localStorage.zb_data = JSON.stringify(this.self.$data);
+		      
+		  //Force data to localStorage values
+		  }else {
+			  this.self.stops = this.localStorageData.stops; 	
+			  this.self.lines = this.localStorageData.lines;     
+			  this.self.missions = this.localStorageData.missions; 
+		  }
 		  
-		  this.setDatas();
+		  this.self.setDatas();
 		  
- 	  }.bind(this));
+	  }.bind({'self': this, 'localStorageData': localStorageData} ));
+	   
   },
   computed: {
 	   currentMissions(){ 

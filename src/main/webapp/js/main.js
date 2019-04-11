@@ -206,7 +206,7 @@ const app = new Vue({
 			  this.self.stops = update.pois; 
 			  this.self.lines = update.routes; 
 			  this.self.missions = update.missions;
-			  this.self.version = update.v;
+			  this.self.version = update.v; 
 			  
 		      localStorage.zb_data = JSON.stringify(this.self.$data);
 		      

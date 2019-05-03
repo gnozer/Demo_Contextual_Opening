@@ -69,14 +69,14 @@ const selectStopAndMission = {
 			    </form>
 			    <div id="popup1" class="overlay" v-show="showModal">
 					<div class="popup">
-						<h2>Choose destination</h2>
+						<h2>Choisissez votre alernative:</h2>
 						<a class="close" href="#" @click="showModal = false">&times;</a>
 						<div class="content">
-							Choose your destination between Zenbus App and Zenbus Iframe.
+							
 						</div>
 						<div class="buttons-container">
-							<button @click="zenbusRedir(idline, currentPoi.uri)" class="button-popup pure-button">Zenbus App</button>
-							<button @click="zenbusLoad(idline, currentPoi.uri)" class="button-popup pure-button">Iframe</button>
+							<button @click="zenbusNative(idline, currentPoi)" class="button-popup pure-button">Zenbus App</button>
+							<button @click="zenbusIframe(idline, currentPoi)" class="button-popup pure-button">Webwiew (In App)</button>
 						</div>
 					</div>
 				</div>
@@ -90,16 +90,16 @@ const selectStopAndMission = {
 		          console.log("route id: " + routeId);
 			      console.log("stop id: " + stopId);
 		          Android.zenbusNative("tan", routeId, stopId); 
-		        } 
+		        }
 		      }, 
 		      
 		      zenbusIframe: function(routeId, stopId){ 
-			        if(Android){ 
-			          console.log("route id: " + routeId);
-			          console.log("stop id: " + stopId);
-			          Android.zenbusIframe("tan", routeId, stopId); 
-			        } 
-			      }
+		        if(Android){ 
+		          console.log("route id: " + routeId);
+		          console.log("stop id: " + stopId);
+		          Android.zenbusIframe("tan", routeId, stopId); 
+		        }
+		      }
 		}
 }
 
@@ -194,11 +194,22 @@ const app = new Vue({
   mounted: function() {
 	  this.loading = true;
 	  
-	  var localStorageData =  localStorage.zb_data ? JSON.parse(localStorage.zb_data) : null;  
+	  //var localStorageData =  localStorage.zb_data ? JSON.parse(localStorage.zb_data) : null;  
 	  
-	  this.$http.get('https://zenbus.net/api/tan?v=' + (localStorageData ? localStorageData.version : this.version)).then(function(response){ 
+	  this.$http.get('https://zenbus.net/api/tan').then(function(response){ 
 		  
 		  var 
+		  update = JSON.parse(response.bodyText);
+		  
+		  console.log(update);
+		  
+		  this.stops = update.pois; 
+		  this.lines = update.routes; 
+		  this.missions = update.missions;
+		  
+		  this.setDatas();
+		  
+		 /* var 
 		  update = JSON.parse(response.bodyText);
 		  
 		  //Update (or first update)
@@ -218,8 +229,8 @@ const app = new Vue({
 		  }
 		  
 		  this.self.setDatas();
-		  
-	  }.bind({'self': this, 'localStorageData': localStorageData} ));
+		  */
+	  });
 	   
   },
   computed: {

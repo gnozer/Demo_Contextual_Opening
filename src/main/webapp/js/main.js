@@ -59,11 +59,11 @@ const selectStopAndMission = {
 				<h2>Arrêt : {{ this.$parent.getStopById(idstop) }}</h2>
 				<h3  :style="{ borderLeft: '3px solid '+ this.$parent.getColorByLineId(idline), paddingLeft:'5px' }">{{ this.$parent.getLineById(idline) }}</h3>
 				<form class="pure-form pure-form-aligned">
-				<label :for="poi.uri" class="pure-radio" v-for="poi in this.$parent.currentPois">
+				<label :for="poi.uri" class="pure-radio" v-for="poi in this.$parent.currentPois" v-if="isPoiForLine(poi, idline)">
 			        <input :id="poi.uri" type="radio" name="optionsRadios" :value="poi.uri" class="pure-radio" v-model="currentPoi" @click="showModal = true">
 			        <i class="arrow right"></i>{{ poi.name }} - <span class="poi-uri">[{{ poi.uri }}]</span>
 			        <ul>
-			        	<li v-for="(mission, i) in poi.missions" v-if="(i == 0) || (i > 0 && mission.name != poi.missions[i-1].name)">{{ mission.name }}</li>
+			        	<li v-for="(mission, i) in poi.missions" v-if="((i == 0) || (i > 0 && mission.name != poi.missions[i-1].name)) && poi.missions[i].route == idline">{{ mission.name }}</li>
 			        </ul>
 			    </label>
 			    </form>
@@ -84,7 +84,15 @@ const selectStopAndMission = {
 		`,
 		
 		methods: {
-			
+
+			  isPoiForLine: function(poi, lineid){
+				  for(var i = 0; i < poi.missions.length; i++){
+					  if(poi.missions[i].route == lineid){
+						  return true;
+					  }
+				  }
+				  return false;
+			  },
 			zenbusNative: function(routeId, stopId){ 
 		        if(Android){ 
 		          console.log("route id: " + routeId);
@@ -160,7 +168,7 @@ const app = new Vue({
 				  return this.lines[i].color;
 			  }
 		  }
-	  },	  
+	  },
 	  alphaSort: function(a, b){
 		  if(a.name < b.name) { return -1;}
 		  if(a.name > b.name) { return 1; }

@@ -186,7 +186,16 @@ const app = new Vue({
 					  }
 				  }
 			  }
+			  if(this.stops[i].parent){ 
+		          this.stops[i].missions = []; 
+		          for(var k = 0; k < this.missions.length; k++){ 
+		        	  if(this.missions[k].pois[this.stops[i].uri]){ 
+		        		  this.stops[i].missions.push(this.missions[k]) ; 
+		        	  } 
+		          } 
+		      }
 		  }
+		  
 		  this.loading = false;
 	  }
   },
